@@ -19,7 +19,9 @@ def main(args):
     keywordlist = getkeywords()
     itemstatus = elementRemoval(args.filename, keywordlist)
     cleanXmlSyntax(itemstatus)
+
     _, tree = elementRemoval(args.filename, keywordlist)
+
     removeDuplicateSourceValues(itemstatus, tree)
 
 
@@ -88,12 +90,23 @@ def elementRemoval(filename, keywordlist):
             print("No items found.")
 
         tree.write('output.xml', encoding='utf-8')
-        return founditem
+        return founditem, tree
+
 
 def removeDuplicateSourceValues(itemstatus, tree):
+    sourceTexts = []
+    #get all xliff <source> values
+    root = tree.getroot()
+    for file in root.findall('.//{urn:oasis:names:tc:xliff:document:1.2}file/'):
+        for transunit in file.findall('./{urn:oasis:names:tc:xliff:document:1.2}trans-unit'):
+            for source in transunit.findall('{urn:oasis:names:tc:xliff:document:1.2}source'):
+                sourceTexts.append(source.text)
+                
+                print(source.text)
+               
 
-
-    print(tree)
+    
+    print(sourceTexts)
     return 0  
 
 
