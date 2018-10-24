@@ -19,6 +19,8 @@ def main(args):
     keywordlist = getkeywords()
     itemstatus = elementRemoval(args.filename, keywordlist)
     cleanXmlSyntax(itemstatus)
+    _, tree = elementRemoval(args.filename, keywordlist)
+    removeDuplicateSourceValues(itemstatus, tree)
 
 
 def getkeywords():
@@ -87,7 +89,14 @@ def elementRemoval(filename, keywordlist):
 
         tree.write('output.xml', encoding='utf-8')
         return founditem
-    
+
+def removeDuplicateSourceValues(itemstatus, tree):
+
+
+    print(tree)
+    return 0  
+
+
 
 #Cleaning of XML neccessary because ElementTree parser can not handle "URN" namespace included in Krones XLIFF format.
 def cleanXmlSyntax(itemstatus):
