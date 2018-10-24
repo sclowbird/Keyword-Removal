@@ -17,12 +17,14 @@ args = parser.parse_args()
 
 def main(args):
     keywordlist = getkeywords()
-    itemstatus = elementRemoval(args.filename, keywordlist)
+    itemstatus, tree = elementRemoval(args.filename, keywordlist)
     cleanXmlSyntax(itemstatus)
+    #get tree return value from elementRemoval
+    #_, tree = elementRemoval(args.filename, keywordlist)
+    sourceValues, elementids = getSourceValues(itemstatus, tree)
+    findDuplicates(sourceValues, elementids)
 
-    _, tree = elementRemoval(args.filename, keywordlist)
 
-    removeDuplicateSourceValues(itemstatus, tree)
 
 
 def getkeywords():
@@ -54,8 +56,6 @@ def elementRemoval(filename, keywordlist):
         with open('error_syntax.log', 'w') as error_log_file:
             error_log_file.write(str(err))
                 
-
-
     if not parseexception:
         root = tree.getroot()
         #find all trans-unit elements, outgoing from document root    
@@ -90,24 +90,58 @@ def elementRemoval(filename, keywordlist):
             print("No items found.")
 
         tree.write('output.xml', encoding='utf-8')
+        #print("Founditem {}".format(founditem))
         return founditem, tree
 
 
-def removeDuplicateSourceValues(itemstatus, tree):
-    sourceTexts = []
-    #get all xliff <source> values
-    root = tree.getroot()
-    for file in root.findall('.//{urn:oasis:names:tc:xliff:document:1.2}file/'):
-        for transunit in file.findall('./{urn:oasis:names:tc:xliff:document:1.2}trans-unit'):
-            for source in transunit.findall('{urn:oasis:names:tc:xliff:document:1.2}source'):
-                sourceTexts.append(source.text)
-                
-                print(source.text)
-               
+def getSourceValues(itemstatus, tree):
+    if(itemstatus):
+        sourceTexts = []
+        elementids = []
+        #get all xliff <source> values
+        root = tree.getroot()
+        for file in root.findall('.//{urn:oasis:names:tc:xliff:document:1.2}file/'):
+            for transunit in file.findall('./{urn:oasis:names:tc:xliff:document:1.2}trans-unit'):
+                elementids.append(transunit.get('id'))
+                for source in transunit.findall('{urn:oasis:names:tc:xliff:document:1.2}source'):
+                    sourceTexts.append(source.text)
+    #print(sourceTexts)
+    #print(elementids)
+    return sourceTexts, elementids
 
+
+def findDuplicates(sourceValues, elementids):
+    seen = {}
+    duplicates = []
+
+    #TODO: (1)
+    #1. Create dict via ZIP with sourceValues / elementids
+    #2. find duplicate values in dict
+    #3. save ids for duplicate values in dict
+    #4. return ids
+
+    for value in sourceValues:
+        #print("Value: {}".format(value))
+        if value not in seen:
+            seen[value] = 1
+        else:
+            if seen[value] == 1:
+                duplicates.append(value)
+            seen[value] +=1
+    print(duplicates)
+
+#TODO: (2)
+#def duplicateIdFile(duplicateIds):   
+    #1. Create csv file
+    #2. Add duplicateIds row by row
+    #3. Save file temporary 
     
-    print(sourceTexts)
-    return 0  
+
+
+#TODO: (3)
+#def removeDuplicateSources():
+    #1.Call elementRemoval(NEWFILENAME, temporarykeylistfile)
+
 
 
 
@@ -127,7 +161,8 @@ def cleanXmlSyntax(itemstatus):
             cleanedXml.write(secondclean[72:])
     else:
         print('No changes detected. Input file was not processed.')
-
+#TODO:
+#1. Return newfilename for removeDuplicateSources() function
 
 
 if __name__== "__main__":
