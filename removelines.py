@@ -19,12 +19,10 @@ def main(args):
     keywordlist = getkeywords()
     itemstatus, tree = elementRemoval(args.filename, keywordlist)
     cleanXmlSyntax(itemstatus)
-    #get tree return value from elementRemoval
-    #_, tree = elementRemoval(args.filename, keywordlist)
+
+
     sourceValues, elementids = getSourceValues(itemstatus, tree)
     findDuplicates(sourceValues, elementids)
-
-
 
 
 def getkeywords():
@@ -55,7 +53,7 @@ def elementRemoval(filename, keywordlist):
         print('XML syntax error. See error_syntax.log for more information.')
         with open('error_syntax.log', 'w') as error_log_file:
             error_log_file.write(str(err))
-                
+         
     if not parseexception:
         root = tree.getroot()
         #find all trans-unit elements, outgoing from document root    
@@ -85,7 +83,7 @@ def elementRemoval(filename, keywordlist):
                 print('Following keyword: "{}" is not unique, please enter the full id in "keywords.csv".'.format(unique))
                 
         if(founditem):
-            print('Elements has been removed.')
+            print('Elements has been successfully removed.')
         else:
             print("No items found.")
 
@@ -113,22 +111,29 @@ def getSourceValues(itemstatus, tree):
 def findDuplicates(sourceValues, elementids):
     seen = {}
     duplicates = []
+    idIndex = []
+    duplicateIds = []    
+    duplicateCount = 0
 
-    #TODO: (1)
-    #1. Create dict via ZIP with sourceValues / elementids
-    #2. find duplicate values in dict
-    #3. save ids for duplicate values in dict
-    #4. return ids
-
+    print("Find duplicate elements in already processed file.")
     for value in sourceValues:
-        #print("Value: {}".format(value))
         if value not in seen:
             seen[value] = 1
         else:
             if seen[value] == 1:
-                duplicates.append(value)
+                duplicates.append(value)     
+                idIndex.append(sourceValues.index(value))
+                duplicateCount +=1
             seen[value] +=1
-    print(duplicates)
+
+    counter = 0
+    for i in idIndex:
+        duplicateIds.append(elementids[i])
+        counter += 1
+        #print("{0} id: {1}".format(counter,elementids[i]))
+    print("Found '{}' duplicates.".format(duplicateCount))
+    return duplicateIds
+
 
 #TODO: (2)
 #def duplicateIdFile(duplicateIds):   
@@ -161,6 +166,12 @@ def cleanXmlSyntax(itemstatus):
             cleanedXml.write(secondclean[72:])
     else:
         print('No changes detected. Input file was not processed.')
+
+
+    return newfilename        
+
+
+
 #TODO:
 #1. Return newfilename for removeDuplicateSources() function
 
