@@ -7,9 +7,11 @@ import xml.etree.ElementTree as ET
 import logging
                
 
-FILEPATH = "./input"
+#FILEPATH = "./input"
+#FILEPATH_DUPLICATE_CSV = 
 FIXED_IDS = {'trans-unit', 'id='}
 FIRST_TEMP_OUTPUT = 'output.xml', 'duplicateoutput.xml'
+DUPLICATES_CSV = 'duplicate_keywords.csv'
 OUTPUT_PREFIX = 'processed_', 'removedDuplicates_'
 
 parser = argparse.ArgumentParser(description="Removal of specific elements from XLIFF.")
@@ -18,13 +20,21 @@ args = parser.parse_args()
 
 
 def main(args):
-    keywordlist = getkeywords('keywords.csv')
-    itemstatus, tree = elementRemoval(args.filename, keywordlist, FIRST_TEMP_OUTPUT[0])
-    cleanXmlSyntax(itemstatus, FIRST_TEMP_OUTPUT[0], OUTPUT_PREFIX[0])
-
-
+    #First part of the program. Removal of keyword elements from XLIFF.
+    keywordlist = getkeywords('keywords.csv') 
+    itemstatus, tree = elementRemoval('./input',args.filename, keywordlist, FIRST_TEMP_OUTPUT[0])
+    outputName = cleanXmlSyntax(itemstatus, FIRST_TEMP_OUTPUT[0], OUTPUT_PREFIX[0])
+    ##########################################################
+    #Second part of the program. Removal of duplicates for sending to translations.
     sourceValues, elementids = getSourceValues(itemstatus, tree)
-    findDuplicates(sourceValues, elementids)
+    listOfDuplicates = findDuplicates(sourceValues, elementids)
+    duplicateIdFile(listOfDuplicates, DUPLICATES_CSV)
+    secondKeyWordList = getkeywords(DUPLICATES_CSV)
+    elementRemoval('./output', outputName, secondKeyWordList, FIRST_TEMP_OUTPUT[1])
+    #FIXME: Escape spaces in elementids!!!!
+    #print(outputName)
+    
+
 
 
 def getkeywords(csvfile):
@@ -40,15 +50,24 @@ def getkeywords(csvfile):
     return keywordlist
 
 
+def duplicateIdFile(duplicateIds, duplicatesCsvName):
+    #1. Create csv file
+    with open(duplicatesCsvName, 'w', encoding='utf-8') as dup:
+        for line in duplicateIds:
+            dup.write('{}\n'.format(line))
+
+
+
 #Remove XLIFF trans-unit elements which contains ids specified in keywords.txt
-def elementRemoval(filename, keywordlist, tempOutput):
+def elementRemoval(filepath, filename, keywordlist, tempOutput):
     founditem = False
     exceptionList = []
     parseexception = False
 
     try:
-        with open(FILEPATH + '/' + filename, 'r', encoding='utf-8') as xliffFile:     
+        with open(filepath + '/' + filename, 'r', encoding='utf-8') as xliffFile:     
             tree = ET.parse(xliffFile)  
+
 
     except ET.ParseError as err:
         parseexception = True
@@ -82,7 +101,7 @@ def elementRemoval(filename, keywordlist, tempOutput):
         if(exceptionList):
             founditem = False
             for unique in exceptionList:
-                print('Following keyword: "{}" is not unique, please enter the full id in "keywords.csv".'.format(unique))
+                print('Following keyword: "{0}" is not unique, please enter the full id in "keywords.csv".'.format(unique))
                 
         if(founditem):
             print('Elements has been successfully removed.')
@@ -137,12 +156,7 @@ def findDuplicates(sourceValues, elementids):
     return duplicateIds
 
 
-#TODO: (2)
-#def duplicateIdFile(duplicateIds):
 
-    #1. Create csv file
-    #2. Add duplicateIds row by row
-    #3. Save file temporary 
     
 
 
@@ -162,6 +176,7 @@ def cleanXmlSyntax(itemstatus, tempoutput, outputPrefix):
         firstclean = xml.replace('<ns0:', '<')
         secondclean = firstclean.replace('</ns0:', '</')      
         newfilename = os.path.join('./output', outputPrefix + args.filename) 
+        nameWithoutPath = (outputPrefix + args.filename)
 
         with open(newfilename, 'w', encoding='utf-8') as cleanedXml:
             cleanedXml.write('<?xml version="1.0" encoding="utf-8"?>\n')
@@ -170,7 +185,7 @@ def cleanXmlSyntax(itemstatus, tempoutput, outputPrefix):
     else:
         print('No changes detected. Input file was not processed.')
 
-    return newfilename        
+    return nameWithoutPath        
 
 
 
