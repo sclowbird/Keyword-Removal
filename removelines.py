@@ -16,7 +16,7 @@ args = parser.parse_args()
 
 
 def main(args):
-    keywordlist = getkeywords()
+    keywordlist = getkeywords('keywords.csv')
     itemstatus, tree = elementRemoval(args.filename, keywordlist)
     cleanXmlSyntax(itemstatus)
 
@@ -25,9 +25,9 @@ def main(args):
     findDuplicates(sourceValues, elementids)
 
 
-def getkeywords():
+def getkeywords(csvfile):
     keywordlist = []
-    with open('keywords.csv', newline='') as kw:
+    with open(csvfile, newline='') as kw:
         reader = csv.reader(kw, delimiter=' ', quotechar='|')
         for kws in reader:
             keywordlist.append(kws)
@@ -136,7 +136,8 @@ def findDuplicates(sourceValues, elementids):
 
 
 #TODO: (2)
-#def duplicateIdFile(duplicateIds):   
+#def duplicateIdFile(duplicateIds):
+
     #1. Create csv file
     #2. Add duplicateIds row by row
     #3. Save file temporary 
