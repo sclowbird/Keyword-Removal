@@ -9,6 +9,8 @@ import logging
 
 FILEPATH = "./input"
 FIXED_IDS = {'trans-unit', 'id='}
+FIRST_TEMP_OUTPUT = 'output.xml', 'duplicateoutput.xml'
+OUTPUT_PREFIX = 'processed_', 'removedDuplicates_'
 
 parser = argparse.ArgumentParser(description="Removal of specific elements from XLIFF.")
 parser.add_argument("filename", help="Specify a file name, e.g. 'translations.xliff'")
@@ -17,8 +19,8 @@ args = parser.parse_args()
 
 def main(args):
     keywordlist = getkeywords('keywords.csv')
-    itemstatus, tree = elementRemoval(args.filename, keywordlist)
-    cleanXmlSyntax(itemstatus)
+    itemstatus, tree = elementRemoval(args.filename, keywordlist, FIRST_TEMP_OUTPUT[0])
+    cleanXmlSyntax(itemstatus, FIRST_TEMP_OUTPUT[0], OUTPUT_PREFIX[0])
 
 
     sourceValues, elementids = getSourceValues(itemstatus, tree)
@@ -39,7 +41,7 @@ def getkeywords(csvfile):
 
 
 #Remove XLIFF trans-unit elements which contains ids specified in keywords.txt
-def elementRemoval(filename, keywordlist):
+def elementRemoval(filename, keywordlist, tempOutput):
     founditem = False
     exceptionList = []
     parseexception = False
@@ -87,7 +89,7 @@ def elementRemoval(filename, keywordlist):
         else:
             print("No items found.")
 
-        tree.write('output.xml', encoding='utf-8')
+        tree.write(tempOutput, encoding='utf-8')
         #print("Founditem {}".format(founditem))
         return founditem, tree
 
@@ -152,14 +154,14 @@ def findDuplicates(sourceValues, elementids):
 
 
 #Cleaning of XML neccessary because ElementTree parser can not handle "URN" namespace included in Krones XLIFF format.
-def cleanXmlSyntax(itemstatus):
+def cleanXmlSyntax(itemstatus, tempoutput, outputPrefix):
     if(itemstatus):
         print('Input file processed and saved.')
-        with open('output.xml', 'r', encoding='utf-8') as cleanXml:
+        with open(tempoutput, 'r', encoding='utf-8') as cleanXml:
             xml = cleanXml.read()
         firstclean = xml.replace('<ns0:', '<')
         secondclean = firstclean.replace('</ns0:', '</')      
-        newfilename = os.path.join('./output', 'processed_'+args.filename) 
+        newfilename = os.path.join('./output', outputPrefix + args.filename) 
 
         with open(newfilename, 'w', encoding='utf-8') as cleanedXml:
             cleanedXml.write('<?xml version="1.0" encoding="utf-8"?>\n')
@@ -167,7 +169,6 @@ def cleanXmlSyntax(itemstatus):
             cleanedXml.write(secondclean[72:])
     else:
         print('No changes detected. Input file was not processed.')
-
 
     return newfilename        
 
@@ -179,7 +180,7 @@ def cleanXmlSyntax(itemstatus):
 
 if __name__== "__main__":
     main(args)
-    os.remove('output.xml') 
+    os.remove(FIRST_TEMP_OUTPUT[0]) 
 
     
 
