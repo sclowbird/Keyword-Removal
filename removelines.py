@@ -23,6 +23,7 @@ args = parser.parse_args()
 def main(args):
     #First part of the program. Removal of keyword elements from XLIFF.
     keywordlist = getkeywords('keywords.csv') 
+    print("\nRemoving keywords declared in keywords.csv from input file.")
     itemstatus, tree = elementRemoval(OUTPUT_PATH[0], args.filename, keywordlist, FIRST_TEMP_OUTPUT[0])
     outputName = cleanXmlSyntax(itemstatus, OUTPUT_PATH[1], FIRST_TEMP_OUTPUT[0], OUTPUT_PREFIX[0])
     ##########################################################
@@ -62,10 +63,11 @@ def duplicateIdFile(duplicateIds, duplicatesCsvName):
 def elementRemoval(filepath, filename, keywordlist, tempOutput):
     #Take care of spaces in keyword IDs
     keywordlist = findIdSpaces(keywordlist)
-
     founditem = False
     exceptionList = []
     parseexception = False
+    countRemovedTags = 0
+
 
     try:
         with open(filepath + '/' + filename, 'r', encoding='utf-8') as xliffFile:     
@@ -96,6 +98,7 @@ def elementRemoval(filepath, filename, keywordlist, tempOutput):
                             try: 
                                 #remove corresponding element from document roo
                                 file.remove(transunit)
+                                countRemovedTags +=1
                             except:
                                 print('Word: "{}"; ElementIDs: "{}"; Found Item: "{}"'.format(word, elementids, founditem))
                                 logging.exception("Fatal error")
@@ -109,7 +112,7 @@ def elementRemoval(filepath, filename, keywordlist, tempOutput):
                 print('Following keyword: "{0}" is not unique, please enter the full id in "keywords.csv".'.format(unique))
                 
         if(founditem):
-            print('Elements has been successfully removed.')
+            print('"{}" elements has been removed in this iteration'.format(countRemovedTags))
         else:
             print("No items found.")
 
@@ -141,7 +144,7 @@ def findDuplicates(sourceValues, elementids):
     duplicateIds = []    
     duplicateCount = 0
 
-    print("Find duplicate elements in already processed file.")
+    print("Finding duplicate elements in already processed file.")
     for value in sourceValues:
         if value not in seen:
             seen[value] = 1
@@ -157,7 +160,7 @@ def findDuplicates(sourceValues, elementids):
         duplicateIds.append(elementids[i])
         counter += 1
         #print("{0} id: {1}".format(counter,elementids[i]))
-    print("Found '{}' duplicates.".format(duplicateCount))
+    print('Found "{}" duplicates.'.format(duplicateCount))
     return duplicateIds
 
 
@@ -167,9 +170,13 @@ def findIdSpaces(keywordlist):
     for words in keywordlist:
         if (len(words) > 3):
             for x in range(len(words)-2):
-                firstElement += (words[x] + ' ')         
+                firstElement += (words[x] + ' ')     
+    
+            #removing trailing whitespace
+            firstElement = firstElement.rstrip()
             words[0] = firstElement
             del words[1:(len(words)-2)]
+
     return keywordlist
     
 
@@ -177,7 +184,7 @@ def findIdSpaces(keywordlist):
 #Cleaning of XML neccessary because ElementTree parser can not handle "URN" namespace included in Krones XLIFF format.
 def cleanXmlSyntax(itemstatus, outputPath, tempoutput, outputPrefix):
     if(itemstatus):
-        print('Input file processed and saved.')
+        print('Input file processed and saved to following path: "{}".\n'.format(outputPath))
         with open(tempoutput, 'r', encoding='utf-8') as cleanXml:
             xml = cleanXml.read()
         firstclean = xml.replace('<ns0:', '<')
