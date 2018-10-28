@@ -21,14 +21,15 @@ args = parser.parse_args()
 
 
 def main(args):
-    #First part of the program. Removal of keyword elements from XLIFF.
+    ############### Removal of keyword elements from XLIFF ###############
+    
     keywordlist = getkeywords('keywords.csv') 
     print("\nRemoving keywords declared in keywords.csv from input file.")
     itemstatus, tree = elementRemoval(OUTPUT_PATH[0], args.filename, keywordlist, FIRST_TEMP_OUTPUT[0])
     outputName = cleanXmlSyntax(itemstatus, OUTPUT_PATH[1], FIRST_TEMP_OUTPUT[0], OUTPUT_PREFIX[0])
-    ##########################################################
+     
+    ############### Removal of duplicate ids ###############
 
-    #Second part of the program. Removal of duplicates for sending to translations.
     sourceValues, elementids = getSourceValues(itemstatus, tree)
     listOfDuplicates = findDuplicates(sourceValues, elementids)
     duplicateIdFile(listOfDuplicates, DUPLICATES_CSV)
@@ -117,7 +118,7 @@ def elementRemoval(filepath, filename, keywordlist, tempOutput):
             print("No items found.")
 
         tree.write(tempOutput, encoding='utf-8')
-        #print("Founditem {}".format(founditem))
+
         return founditem, tree
 
 
@@ -132,8 +133,7 @@ def getSourceValues(itemstatus, tree):
                 elementids.append(transunit.get('id'))
                 for source in transunit.findall('{urn:oasis:names:tc:xliff:document:1.2}source'):
                     sourceTexts.append(source.text)
-    #print(sourceTexts)
-    #print(elementids)
+
     return sourceTexts, elementids
 
 
