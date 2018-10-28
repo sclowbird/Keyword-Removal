@@ -60,6 +60,9 @@ def duplicateIdFile(duplicateIds, duplicatesCsvName):
 
 #Remove XLIFF trans-unit elements which contains ids specified in keywords.txt
 def elementRemoval(filepath, filename, keywordlist, tempOutput):
+    #Take care of spaces in keyword IDs
+    keywordlist = findIdSpaces(keywordlist)
+
     founditem = False
     exceptionList = []
     parseexception = False
@@ -83,8 +86,7 @@ def elementRemoval(filepath, filename, keywordlist, tempOutput):
                 elementids = transunit.get('id')                          
                 #check keywords from keywords.txt 
                 for keywords in keywordlist:       
-                    print(len(keywords))
-                    #TODO: Check for ids with spaces in keywordlist       
+                    #TODO: Check for ids with spaces in keywordlist    
                     for word in keywords:                        
                         if(word in elementids):                           
                             founditem = True
@@ -159,11 +161,15 @@ def findDuplicates(sourceValues, elementids):
 
 
 def findIdSpaces(keywordlist):
-    listLength = len(keywordlist)
-
-
-
-    return spacefreeKeywordIds  
+    firstElement = '' 
+    for words in keywordlist:
+        if (len(words) > 3):
+            for x in range(len(words)-2):
+                firstElement += (words[x] + ' ')         
+            words[0] = firstElement
+            del words[1:(len(words)-2)]
+    return keywordlist
+    
 
 
 #Cleaning of XML neccessary because ElementTree parser can not handle "URN" namespace included in Krones XLIFF format.
