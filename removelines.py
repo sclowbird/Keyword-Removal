@@ -7,8 +7,6 @@ import xml.etree.ElementTree as ET
 import logging
                
 
-#FILEPATH = "./input"
-#FILEPATH_DUPLICATE_CSV = 
 FIXED_IDS = {'trans-unit', 'id='}
 FIRST_TEMP_OUTPUT = 'output.xml', 'duplicateoutput.xml'
 DUPLICATES_CSV = 'duplicate_keywords.csv'
@@ -22,7 +20,7 @@ args = parser.parse_args()
 
 def main(args):
     ############### Removal of keyword elements from XLIFF ###############
-    
+
     keywordlist = getkeywords('keywords.csv') 
     print("\nRemoving keywords declared in keywords.csv from input file.")
     itemstatus, tree = elementRemoval(OUTPUT_PATH[0], args.filename, keywordlist, FIRST_TEMP_OUTPUT[0])
