@@ -1,6 +1,6 @@
 # How to use keyword removal 
 
-1. Export texts form Workbench.   
+1. Export texts from Workbench.   
 Add .xliff input file to "input" folder. 
    
 2. Add keywords to keywords.csv, one keyword per line without quotation marks!  (Example keywords in file).
