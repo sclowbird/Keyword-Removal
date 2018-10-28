@@ -158,7 +158,7 @@ def findDuplicates(sourceValues, elementids):
         duplicateIds.append(elementids[i])
         counter += 1
         #print("{0} id: {1}".format(counter,elementids[i]))
-    print('Found "{}" duplicates.'.format(duplicateCount))
+    print('Found "{}" duplicates. You can see them in "duplicate_keywords.csv"'.format(duplicateCount))
     return duplicateIds
 
 
