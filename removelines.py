@@ -13,6 +13,7 @@ FIXED_IDS = {'trans-unit', 'id='}
 FIRST_TEMP_OUTPUT = 'output.xml', 'duplicateoutput.xml'
 DUPLICATES_CSV = 'duplicate_keywords.csv'
 OUTPUT_PREFIX = 'processed_', 'removedDuplicates_'
+OUTPUT_PATH = './input', './output', './for_translation'
 
 parser = argparse.ArgumentParser(description="Removal of specific elements from XLIFF.")
 parser.add_argument("filename", help="Specify a file name, e.g. 'translations.xliff'")
@@ -22,20 +23,19 @@ args = parser.parse_args()
 def main(args):
     #First part of the program. Removal of keyword elements from XLIFF.
     keywordlist = getkeywords('keywords.csv') 
-    itemstatus, tree = elementRemoval('./input',args.filename, keywordlist, FIRST_TEMP_OUTPUT[0])
-    outputName = cleanXmlSyntax(itemstatus, FIRST_TEMP_OUTPUT[0], OUTPUT_PREFIX[0])
+    itemstatus, tree = elementRemoval(OUTPUT_PATH[0], args.filename, keywordlist, FIRST_TEMP_OUTPUT[0])
+    outputName = cleanXmlSyntax(itemstatus, OUTPUT_PATH[1], FIRST_TEMP_OUTPUT[0], OUTPUT_PREFIX[0])
     ##########################################################
+
     #Second part of the program. Removal of duplicates for sending to translations.
     sourceValues, elementids = getSourceValues(itemstatus, tree)
     listOfDuplicates = findDuplicates(sourceValues, elementids)
     duplicateIdFile(listOfDuplicates, DUPLICATES_CSV)
     secondKeyWordList = getkeywords(DUPLICATES_CSV)
-    elementRemoval('./output', outputName, secondKeyWordList, FIRST_TEMP_OUTPUT[1])
-    #FIXME: Escape spaces in
-    #print(outputName)
+    elementRemoval(OUTPUT_PATH[1], outputName, secondKeyWordList, FIRST_TEMP_OUTPUT[1])
+    cleanXmlSyntax(itemstatus, OUTPUT_PATH[2], FIRST_TEMP_OUTPUT[1], OUTPUT_PREFIX[1])
+
     
-
-
 
 def getkeywords(csvfile):
     keywordlist = []
@@ -86,7 +86,8 @@ def elementRemoval(filepath, filename, keywordlist, tempOutput):
                 elementids = transunit.get('id')                          
                 #check keywords from keywords.txt 
                 for keywords in keywordlist:       
-                    #TODO: Check for ids with spaces in keywordlist    
+                    #Needed to make findIdSpaces function because spaces in IDs created 
+                    #errors for ids with spaces inside them.
                     for word in keywords:                        
                         if(word in elementids):                           
                             founditem = True
@@ -160,6 +161,7 @@ def findDuplicates(sourceValues, elementids):
     return duplicateIds
 
 
+
 def findIdSpaces(keywordlist):
     firstElement = '' 
     for words in keywordlist:
@@ -173,14 +175,14 @@ def findIdSpaces(keywordlist):
 
 
 #Cleaning of XML neccessary because ElementTree parser can not handle "URN" namespace included in Krones XLIFF format.
-def cleanXmlSyntax(itemstatus, tempoutput, outputPrefix):
+def cleanXmlSyntax(itemstatus, outputPath, tempoutput, outputPrefix):
     if(itemstatus):
         print('Input file processed and saved.')
         with open(tempoutput, 'r', encoding='utf-8') as cleanXml:
             xml = cleanXml.read()
         firstclean = xml.replace('<ns0:', '<')
         secondclean = firstclean.replace('</ns0:', '</')      
-        newfilename = os.path.join('./output', outputPrefix + args.filename) 
+        newfilename = os.path.join(outputPath, outputPrefix + args.filename) 
         nameWithoutPath = (outputPrefix + args.filename)
 
         with open(newfilename, 'w', encoding='utf-8') as cleanedXml:
@@ -189,7 +191,6 @@ def cleanXmlSyntax(itemstatus, tempoutput, outputPrefix):
             cleanedXml.write(secondclean[72:])
     else:
         print('No changes detected. Input file was not processed.')
-
     return nameWithoutPath        
 
 
@@ -197,6 +198,7 @@ def cleanXmlSyntax(itemstatus, tempoutput, outputPrefix):
 if __name__== "__main__":
     main(args)
     os.remove(FIRST_TEMP_OUTPUT[0]) 
+    os.remove(FIRST_TEMP_OUTPUT[1]) 
 
     
 
