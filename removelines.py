@@ -31,7 +31,7 @@ def main(args):
     duplicateIdFile(listOfDuplicates, DUPLICATES_CSV)
     secondKeyWordList = getkeywords(DUPLICATES_CSV)
     elementRemoval('./output', outputName, secondKeyWordList, FIRST_TEMP_OUTPUT[1])
-    #FIXME: Escape spaces in elementids!!!!
+    #FIXME: Escape spaces in
     #print(outputName)
     
 
@@ -80,10 +80,12 @@ def elementRemoval(filepath, filename, keywordlist, tempOutput):
         #find all trans-unit elements, outgoing from document root    
         for file in root.findall('.//{urn:oasis:names:tc:xliff:document:1.2}file/'):
             for transunit in file.findall('./{urn:oasis:names:tc:xliff:document:1.2}trans-unit'):
-                elementids = transunit.get('id')                              
+                elementids = transunit.get('id')                          
                 #check keywords from keywords.txt 
-                for keywords in keywordlist:               
-                    for word in keywords:                    
+                for keywords in keywordlist:       
+                    print(len(keywords))
+                    #TODO: Check for ids with spaces in keywordlist       
+                    for word in keywords:                        
                         if(word in elementids):                           
                             founditem = True
                             #print('Word: "{}"; ElementIDs: "{}"; Found Item: "{}"'.format(word, elementids, founditem))
@@ -156,15 +158,12 @@ def findDuplicates(sourceValues, elementids):
     return duplicateIds
 
 
-
-    
-
-
-#TODO: (3)
-#def removeDuplicateSources():
-    #1.Call elementRemoval(NEWFILENAME, temporarykeylistfile)
+def findIdSpaces(keywordlist):
+    listLength = len(keywordlist)
 
 
+
+    return spacefreeKeywordIds  
 
 
 #Cleaning of XML neccessary because ElementTree parser can not handle "URN" namespace included in Krones XLIFF format.
@@ -187,10 +186,6 @@ def cleanXmlSyntax(itemstatus, tempoutput, outputPrefix):
 
     return nameWithoutPath        
 
-
-
-#TODO:
-#1. Return newfilename for removeDuplicateSources() function
 
 
 if __name__== "__main__":
